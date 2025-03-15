@@ -21,6 +21,7 @@
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html -->
     <depends>com.intellij.modules.platform</depends>
     <depends>com.intellij.modules.java</depends>
+    <depends>com.intellij.modules.lang</depends>
 
     <!-- Extension points defined by the plugin.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
@@ -32,6 +33,10 @@
                 enabledByDefault="true"
                 level="WEAK_WARNING"
                 implementationClass="net.justonedev.codestyle.checks.MinimalVisibilityInspection" language=""/>
+        <toolWindow
+                id="MinimalVisibilityChecker"
+                anchor="bottom"
+                factoryClass="net.justonedev.codestyle.checks.MinimalVisibilityToolWindowFactory" />
     </extensions>
 
     <actions>

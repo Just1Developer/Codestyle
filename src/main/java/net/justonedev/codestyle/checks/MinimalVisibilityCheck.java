@@ -172,7 +172,7 @@ public class MinimalVisibilityCheck extends AnAction {
     /**
      * Returns the textual visibility of the method (public/protected/package-private/private).
      */
-    private static String getVisibility(PsiMethod method) {
+    public static String getVisibility(PsiMethod method) {
         PsiModifierList modifierList = method.getModifierList();
         if (modifierList.hasModifierProperty(PsiModifier.PUBLIC)) {
             return PsiModifier.PUBLIC;
