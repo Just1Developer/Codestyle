@@ -24,6 +24,14 @@ public class VisibilityInfo {
         packagePrivateUsageFound = packagePrivateUsageFound || value;
     }
 
+    public boolean isPublicUsageFound() {
+        return publicUsageFound;
+    }
+
+    public boolean isProtectedUsageFound() {
+        return protectedUsageFound;
+    }
+
     /**
      * Returns whether we can lower the visibility from the current level.
      */
@@ -37,14 +45,25 @@ public class VisibilityInfo {
      * A naive approach to figure out the minimal needed visibility.
      */
     public String getSuggestedLevel() {
+        int currentLevelInt = getLevelInt(currentLevel);
         if (publicUsageFound) {
             return "public";
-        } else if (protectedUsageFound) {
+        } else if (protectedUsageFound && currentLevelInt >= 2) {
             return "protected";
-        } else if (packagePrivateUsageFound) {
+        } else if (packagePrivateUsageFound && currentLevelInt >= 1) {
             return "package-private";
         } else {
             return "private";
         }
+    }
+
+    private int getLevelInt(String level) {
+        return switch (level) {
+            case "public" -> 3;
+            case "protected" -> 2;
+            case "package-private" -> 1;
+            case "private" -> 0;
+            default -> -1;
+        };
     }
 }

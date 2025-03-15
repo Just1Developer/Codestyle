@@ -25,7 +25,13 @@
     <!-- Extension points defined by the plugin.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
     <extensions defaultExtensionNs="com.intellij">
-
+        <localInspection
+                shortName="MinimalVisibilityInspection"
+                displayName="Minimal visibility inspection"
+                groupName="Java"
+                enabledByDefault="true"
+                level="WEAK_WARNING"
+                implementationClass="net.justonedev.codestyle.checks.MinimalVisibilityInspection" language=""/>
     </extensions>
 
     <actions>

@@ -1,5 +1,6 @@
 package net.justonedev.codestyle.checks;
 
+import com.intellij.lang.jvm.JvmClassKind;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
@@ -30,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
 public class MinimalVisibilityCheck extends AnAction {
 
@@ -95,9 +97,16 @@ public class MinimalVisibilityCheck extends AnAction {
     /**
      * Analyzes a single PsiMethod’s references across the project to see if the method’s visibility can be lowered.
      */
-    private VisibilityInfo analyzeMethodUsage(PsiMethod method, Project project) {
+    @SuppressWarnings("ApiStatus.Experimental")
+    public static VisibilityInfo analyzeMethodUsage(PsiMethod method, Project project) {
         // Current visibility
         VisibilityInfo info = new VisibilityInfo(getVisibility(method));
+
+        if (method.hasAnnotation("java.lang.Override")
+                || !method.isPhysical()
+                || isMainMethod(method)
+                || Objects.requireNonNull(method.getContainingClass()).getClassKind().equals(JvmClassKind.INTERFACE)
+                || OverridingMethodsSearch.search(method).findFirst() != null) return info;
 
         // 1. Query references in the entire project
         Query<PsiReference> search = ReferencesSearch.search(method, GlobalSearchScope.projectScope(project));
@@ -130,7 +139,7 @@ public class MinimalVisibilityCheck extends AnAction {
         return info;
     }
 
-    private PsiClass findContainingClass(PsiElement element) {
+    private static PsiClass findContainingClass(PsiElement element) {
         while (element != null) {
             if (element instanceof PsiClass) {
                 return (PsiClass) element;
@@ -140,11 +149,11 @@ public class MinimalVisibilityCheck extends AnAction {
         return null;
     }
 
-    private boolean inSameClass(PsiClass c1, PsiClass c2) {
+    private static boolean inSameClass(PsiClass c1, PsiClass c2) {
         return c1.equals(c2);
     }
 
-    private boolean inSamePackage(PsiClass c1, PsiClass c2) {
+    private static boolean inSamePackage(PsiClass c1, PsiClass c2) {
         PsiFile f1 = c1.getContainingFile();
         PsiFile f2 = c2.getContainingFile();
         if (f1 instanceof PsiJavaFile && f2 instanceof PsiJavaFile) {
@@ -155,7 +164,7 @@ public class MinimalVisibilityCheck extends AnAction {
         return false;
     }
 
-    private boolean isSubclass(PsiClass base, PsiClass maybeSubclass) {
+    private static boolean isSubclass(PsiClass base, PsiClass maybeSubclass) {
         // Very naive check. For a real check you'd do something like:
         return maybeSubclass.isInheritor(base, true);
     }
@@ -163,7 +172,7 @@ public class MinimalVisibilityCheck extends AnAction {
     /**
      * Returns the textual visibility of the method (public/protected/package-private/private).
      */
-    private String getVisibility(PsiMethod method) {
+    private static String getVisibility(PsiMethod method) {
         PsiModifierList modifierList = method.getModifierList();
         if (modifierList.hasModifierProperty(PsiModifier.PUBLIC)) {
             return PsiModifier.PUBLIC;
