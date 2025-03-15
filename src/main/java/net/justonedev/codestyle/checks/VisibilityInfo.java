@@ -1,14 +1,14 @@
 package net.justonedev.codestyle.checks;
 
 public class VisibilityInfo {
-    private final String currentLevel;
+    private final Visibility currentLevel;
 
     // Flags that tell us if we need at least that level
     private boolean publicUsageFound = false;
     private boolean protectedUsageFound = false;
     private boolean packagePrivateUsageFound = false;
 
-    public VisibilityInfo(String currentLevel) {
+    public VisibilityInfo(Visibility currentLevel) {
         this.currentLevel = currentLevel;
     }
 
@@ -24,46 +24,44 @@ public class VisibilityInfo {
         packagePrivateUsageFound = packagePrivateUsageFound || value;
     }
 
-    public boolean isPublicUsageFound() {
-        return publicUsageFound;
-    }
-
-    public boolean isProtectedUsageFound() {
-        return protectedUsageFound;
+    /**
+     * Returns whether we can lower the visibility from the current level.
+     */
+    public boolean canLowerVisibility() {
+        return canLowerVisibility(VisibilitySettings.DEFAULT);
     }
 
     /**
      * Returns whether we can lower the visibility from the current level.
      */
-    public boolean canLowerVisibility() {
-        String suggested = getSuggestedLevel();
+    public boolean canLowerVisibility(VisibilitySettings settings) {
+        Visibility suggested = getSuggestedLevel(settings);
         // If the suggested level is the same as the current, no, we can’t lower it.
-        return !suggested.equals(currentLevel);
+        return suggested.getLevel() < currentLevel.getLevel();
+    }
+
+    public Visibility getSuggestedLevel() {
+        return getSuggestedLevel(VisibilitySettings.DEFAULT);
     }
 
     /**
      * A naive approach to figure out the minimal needed visibility.
      */
-    public String getSuggestedLevel() {
-        int currentLevelInt = getLevelInt(currentLevel);
+    public Visibility getSuggestedLevel(VisibilitySettings settings) {
+        int newLevel;
         if (publicUsageFound) {
-            return "public";
-        } else if (protectedUsageFound && currentLevelInt >= 2) {
-            return "protected";
-        } else if (packagePrivateUsageFound && currentLevelInt >= 1) {
-            return "package-private";
+            newLevel = 3;
+        } else if (protectedUsageFound
+                || packagePrivateUsageFound
+                && settings.useProtected() == VisibilitySettings.ProtectedStatus.USE
+                && settings.usePackagePrivate() == VisibilitySettings.PackagePrivateStatus.NEVER) {
+            newLevel = 2;
+        } else if (packagePrivateUsageFound) {
+            newLevel = 1;
         } else {
-            return "private";
+            newLevel = 0;
         }
-    }
-
-    private int getLevelInt(String level) {
-        return switch (level) {
-            case "public" -> 3;
-            case "protected" -> 2;
-            case "package-private" -> 1;
-            case "private" -> 0;
-            default -> -1;
-        };
+        Visibility newVis = Visibility.fromLevel(newLevel);
+        return settings.shouldApplyVisibilityHint(currentLevel, newVis) ? newVis : currentLevel;
     }
 }

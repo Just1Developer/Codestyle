@@ -66,7 +66,6 @@ public class MinimalVisibilityInspection extends LocalInspectionTool {
     @Override
     public @NotNull PsiElementVisitor buildVisitor(@NotNull ProblemsHolder holder,
                                                    boolean isOnTheFly) {
-
         return new JavaElementVisitor() {
             @Override
             public void visitMethod(@NotNull PsiMethod method) {
@@ -83,85 +82,17 @@ public class MinimalVisibilityInspection extends LocalInspectionTool {
                         Objects.requireNonNull(method.getNameIdentifier()),  // highlight the method name
                         message,
                         ProblemHighlightType.WEAK_WARNING,
-                        new LowerVisibilityQuickFix(visibilityInfo.getSuggestedLevel())
+                        new LowerVisibilityQuickFix(visibilityInfo.getSuggestedLevel().getVisibility())
                 );
             }
         };
     }
 
     /**
-     * The same logic you had, but now factoring in your config (allowProtectedIfOverrides, etc.).
-     */
-    private VisibilityInfo analyzeMethodUsage(PsiMethod method) {
-        VisibilityInfo info = new VisibilityInfo(getVisibility(method));
-
-        // 1. Query references in the entire project
-        Query<PsiReference> search = ReferencesSearch.search(method, GlobalSearchScope.projectScope(method.getProject()));
-        // 2. Examine references
-        for (PsiReference ref : search) {
-            PsiElement element = ref.getElement();
-            PsiClass usageClass = findContainingClass(element);
-            if (usageClass == null) {
-                // unknown usage => must remain public
-                info.setPublicUsageFound(true);
-                break;
-            } else {
-                PsiClass methodClass = method.getContainingClass();
-                if (methodClass != null && !inSameClass(methodClass, usageClass)) {
-                    if (inSamePackage(methodClass, usageClass)) {
-                        // we can only do package-private at best
-                        info.setPackagePrivateUsageFound(true);
-                    } else if (isSubclass(methodClass, usageClass)) {
-                        // could do protected
-                        info.setProtectedUsageFound(true);
-                    } else {
-                        // must be public
-                        info.setPublicUsageFound(true);
-                        break;
-                    }
-                }
-            }
-        }
-
-        // 3. Possibly refine based on user config. For example:
-        // if allowProtectedIfOverrides = false, then do not allow protected if method is overridden:
-        if (!allowProtectedIfOverrides) {
-            // If this method has overrides, then protected might not be considered valid
-            boolean hasOverrides = OverridingMethodsSearch.search(method).findFirst() != null;
-            if (hasOverrides) {
-                // Force 'public' if it’s overridden, ignoring the normal logic
-                info.setPublicUsageFound(true);
-            }
-        }
-
-        // If user does not allow package-private, we treat that as needing at least protected
-        if (!allowPackagePrivate && !info.isPublicUsageFound() && !info.isProtectedUsageFound()) {
-            // So if we are currently at "package-private" or "private" possibility,
-            // we push it up to "protected"
-            info.setProtectedUsageFound(true);
-        }
-
-        return info;
-    }
-
-    // Helper methods, same as you have now
-    private PsiClass findContainingClass(PsiElement element) { /*...*/ return null; }
-    private boolean inSameClass(PsiClass c1, PsiClass c2) { /*...*/ return false; }
-    private boolean inSamePackage(PsiClass c1, PsiClass c2) { /*...*/ return false; }
-    private boolean isSubclass(PsiClass base, PsiClass maybeSubclass) { /*...*/ return false; }
-
-    private String getVisibility(PsiMethod method) { /*...*/ return PsiModifier.PUBLIC; }
-
-    /**
      * Optional: a QuickFix to automatically reduce the method visibility.
      * The user can click "Apply fix" in the inspection results.
      */
-    private static class LowerVisibilityQuickFix implements LocalQuickFix {
-        private final String newVisibility;
-
-        public LowerVisibilityQuickFix(String newVisibility) {
-            this.newVisibility = newVisibility;
-        }
+    private record LowerVisibilityQuickFix(String newVisibility) implements LocalQuickFix {
 
         @Override
         public @NotNull String getName() {
@@ -176,8 +107,7 @@ public class MinimalVisibilityInspection extends LocalInspectionTool {
         @Override
         public void applyFix(@NotNull Project project, @NotNull ProblemDescriptor descriptor) {
             PsiElement element = descriptor.getPsiElement();
-            if (!(element.getParent() instanceof PsiMethod)) return;
-            PsiMethod method = (PsiMethod) element.getParent();
+            if (!(element.getParent() instanceof PsiMethod method)) return;
 
             PsiModifierList modifiers = method.getModifierList();
             // First remove existing visibility modifiers

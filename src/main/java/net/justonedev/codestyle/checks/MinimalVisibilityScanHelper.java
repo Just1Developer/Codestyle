@@ -12,8 +12,7 @@ import java.util.List;
 public class MinimalVisibilityScanHelper {
 
     public static List<VisibilityResult> runScan(Project project,
-                                                 String protectedSetting,
-                                                 String packagePrivateSetting) {
+                                                 VisibilitySettings settings) {
         // 1. Collect all classes
         Collection<PsiClass> allClasses = AllClassesSearch
                 .search(GlobalSearchScope.projectScope(project), project)
@@ -24,20 +23,16 @@ public class MinimalVisibilityScanHelper {
         // 2. For each class, check methods
         for (PsiClass psiClass : allClasses) {
             for (PsiMethod psiMethod : psiClass.getMethods()) {
-                String currentVisibility = MinimalVisibilityCheck.getVisibility(psiMethod);
-                int currentVisibilityInt = MinimalVisibilityCheck.getVisibilityInt(psiMethod);
-                if (currentVisibilityInt == 0) continue;
+                Visibility currentVisibility = Visibility.fromMethod(psiMethod);
+                if (currentVisibility.getLevel() == 0) continue;
                 VisibilityInfo info = MinimalVisibilityCheck.analyzeMethodUsage(psiMethod, project);
 
-                // You can incorporate the user’s settings from the combos
-                // e.g. if (protectedSetting.equals("Never")) => do something
-
-                if (info.canLowerVisibility()) {
+                if (info.canLowerVisibility(settings)) {
                     results.add(new VisibilityResult(
                             psiClass.getQualifiedName(),
                             psiMethod.getName(),
                             currentVisibility,
-                            info.getSuggestedLevel()
+                            info.getSuggestedLevel(settings)
                     ));
                 }
             }

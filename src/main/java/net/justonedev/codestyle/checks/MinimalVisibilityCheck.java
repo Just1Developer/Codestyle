@@ -64,9 +64,7 @@ public class MinimalVisibilityCheck extends AnAction {
                     || !psiMethod.isPhysical()
                     || isMainMethod(psiMethod)
                     || OverridingMethodsSearch.search(psiMethod).findFirst() != null) continue;
-                //if ()
 
-                // 3. Determine if method is candidate for lowered visibility.
                 VisibilityInfo visibilityInfo = analyzeMethodUsage(psiMethod, project);
                 if (visibilityInfo.canLowerVisibility()) {
                     resultBuilder.append("Method: ")
@@ -100,7 +98,7 @@ public class MinimalVisibilityCheck extends AnAction {
     @SuppressWarnings("ApiStatus.Experimental")
     public static VisibilityInfo analyzeMethodUsage(PsiMethod method, Project project) {
         // Current visibility
-        VisibilityInfo info = new VisibilityInfo(getVisibility(method));
+        VisibilityInfo info = new VisibilityInfo(Visibility.fromMethod(method));
 
         if (method.hasAnnotation("java.lang.Override")
                 || !method.isPhysical()
@@ -168,37 +166,7 @@ public class MinimalVisibilityCheck extends AnAction {
     }
 
     private static boolean isSubclass(PsiClass base, PsiClass maybeSubclass) {
-        // Very naive check. For a real check you'd do something like:
+        // Very naive check.
         return maybeSubclass.isInheritor(base, true);
-    }
-
-    /**
-     * Returns the textual visibility of the method (public/protected/package-private/private).
-     */
-    public static String getVisibility(PsiMethod method) {
-        PsiModifierList modifierList = method.getModifierList();
-        if (modifierList.hasModifierProperty(PsiModifier.PUBLIC)) {
-            return PsiModifier.PUBLIC;
-        } else if (modifierList.hasModifierProperty(PsiModifier.PROTECTED)) {
-            return PsiModifier.PROTECTED;
-        } else if (modifierList.hasModifierProperty(PsiModifier.PRIVATE)) {
-            return PsiModifier.PRIVATE;
-        } else {
-            // “Default” means package-private in Java
-            return "package-private";
-        }
-    }
-
-    /**
-     * Returns the textual visibility of the method (public/protected/package-private/private).
-     */
-    public static int getVisibilityInt(PsiMethod method) {
-        return switch (getVisibility(method)) {
-            case "public" -> 3;
-            case "protected" -> 2;
-            case "package-private" -> 1;
-            case "private" -> 0;
-            default -> -1;
-        };
     }
 }

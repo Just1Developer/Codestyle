@@ -1,5 +1,6 @@
 package net.justonedev.codestyle.checks;
 
+import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.DialogWrapper;
 import org.jetbrains.annotations.Nullable;
 
@@ -23,17 +24,21 @@ public class VisibilityConfigDialog extends DialogWrapper {
 
         // protected
         panel.add(new JLabel("protected:"));
-        protectedCombo = new JComboBox<>(new String[]{
+        protectedCombo = new ComboBox<>(new String[]{
                 "When applicable",
                 "With Inheritors",
-                "Never",
-                "Always"
+                "Never"
         });
+        protectedCombo.setSelectedIndex(1);
         panel.add(protectedCombo);
 
         // package-private
         panel.add(new JLabel("package-private:"));
-        packagePrivateCombo = new JComboBox<>(new String[]{"Use", "Never"});
+        packagePrivateCombo = new ComboBox<>(new String[]{
+                "Use",
+                "Never"
+        });
+        packagePrivateCombo.setSelectedIndex(1);
         panel.add(packagePrivateCombo);
 
         return panel;
