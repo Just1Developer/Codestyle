@@ -106,7 +106,10 @@ public class MinimalVisibilityCheck extends AnAction {
                 || !method.isPhysical()
                 || isMainMethod(method)
                 || Objects.requireNonNull(method.getContainingClass()).getClassKind().equals(JvmClassKind.INTERFACE)
-                || OverridingMethodsSearch.search(method).findFirst() != null) return info;
+                || OverridingMethodsSearch.search(method).findFirst() != null) {
+            info.setPublicUsageFound(true);
+            return info;
+        }
 
         // 1. Query references in the entire project
         Query<PsiReference> search = ReferencesSearch.search(method, GlobalSearchScope.projectScope(project));
@@ -184,5 +187,18 @@ public class MinimalVisibilityCheck extends AnAction {
             // “Default” means package-private in Java
             return "package-private";
         }
+    }
+
+    /**
+     * Returns the textual visibility of the method (public/protected/package-private/private).
+     */
+    public static int getVisibilityInt(PsiMethod method) {
+        return switch (getVisibility(method)) {
+            case "public" -> 3;
+            case "protected" -> 2;
+            case "package-private" -> 1;
+            case "private" -> 0;
+            default -> -1;
+        };
     }
 }

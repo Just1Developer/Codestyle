@@ -31,7 +31,7 @@
                 displayName="Minimal visibility inspection"
                 groupName="Java"
                 enabledByDefault="true"
-                level="WEAK_WARNING"
+                level="INFO"
                 implementationClass="net.justonedev.codestyle.checks.MinimalVisibilityInspection" language=""/>
         <toolWindow
                 id="MinimalVisibilityChecker"

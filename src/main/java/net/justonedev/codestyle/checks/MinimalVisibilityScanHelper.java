@@ -24,13 +24,9 @@ public class MinimalVisibilityScanHelper {
         // 2. For each class, check methods
         for (PsiClass psiClass : allClasses) {
             for (PsiMethod psiMethod : psiClass.getMethods()) {
-                // Maybe skip @Override or synthetic
-                if (psiMethod.hasAnnotation("java.lang.Override") || !psiMethod.isPhysical()) {
-                    continue;
-                }
-
-                // 3. Analyze usage
                 String currentVisibility = MinimalVisibilityCheck.getVisibility(psiMethod);
+                int currentVisibilityInt = MinimalVisibilityCheck.getVisibilityInt(psiMethod);
+                if (currentVisibilityInt == 0) continue;
                 VisibilityInfo info = MinimalVisibilityCheck.analyzeMethodUsage(psiMethod, project);
 
                 // You can incorporate the user’s settings from the combos

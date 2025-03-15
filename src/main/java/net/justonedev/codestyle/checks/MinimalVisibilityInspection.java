@@ -72,12 +72,6 @@ public class MinimalVisibilityInspection extends LocalInspectionTool {
             public void visitMethod(@NotNull PsiMethod method) {
                 super.visitMethod(method);
 
-                // 1. Exclude certain methods, like you do now
-                if (method.hasAnnotation("java.lang.Override") || !method.isPhysical()) {
-                    return;
-                }
-
-                // 2. Determine if method is candidate
                 VisibilityInfo visibilityInfo = MinimalVisibilityCheck.analyzeMethodUsage(method, holder.getProject());
                 if (!visibilityInfo.canLowerVisibility()) {
                     return; // no problem
