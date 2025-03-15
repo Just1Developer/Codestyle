@@ -26,17 +26,27 @@ public class VisibilityTableModel extends AbstractTableModel {
     @Override
     public Object getValueAt(int rowIndex, int columnIndex) {
         VisibilityResult row = data.get(rowIndex);
-        switch (columnIndex) {
-            case 0: return row.className();
-            case 1: return row.methodName();
-            case 2: return row.oldVisibility();
-            case 3: return row.newVisibility();
-            default: return "";
-        }
+        return switch (columnIndex) {
+            case 0 -> row.getClassName();
+            case 1 -> row.getMethodName();
+            case 2 -> {
+                Visibility oldVis = row.oldVisibility();
+                yield (oldVis != null) ? oldVis.name() : "";
+            }
+            case 3 -> {
+                Visibility newVis = row.newVisibility();
+                yield (newVis != null) ? newVis.name() : "";
+            }
+            default -> "";
+        };
     }
 
     public void setResults(List<VisibilityResult> newData) {
         this.data = newData;
         fireTableDataChanged();
+    }
+
+    public VisibilityResult getResultAt(int rowIndex) {
+        return data.get(rowIndex);
     }
 }

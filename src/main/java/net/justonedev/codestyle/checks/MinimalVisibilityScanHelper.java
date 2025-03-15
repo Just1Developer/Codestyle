@@ -29,8 +29,8 @@ public class MinimalVisibilityScanHelper {
 
                 if (info.canLowerVisibility(settings)) {
                     results.add(new VisibilityResult(
-                            psiClass.getQualifiedName(),
-                            psiMethod.getName(),
+                            psiClass,
+                            psiMethod,
                             currentVisibility,
                             info.getSuggestedLevel(settings)
                     ));

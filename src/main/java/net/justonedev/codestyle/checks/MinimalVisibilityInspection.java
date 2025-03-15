@@ -120,9 +120,7 @@ public class MinimalVisibilityInspection extends LocalInspectionTool {
                 modifiers.setModifierProperty(PsiModifier.PUBLIC, true);
             } else if (PsiModifier.PROTECTED.equals(newVisibility)) {
                 modifiers.setModifierProperty(PsiModifier.PROTECTED, true);
-            } else if ("package-private".equals(newVisibility)) {
-                // do nothing, i.e. no explicit keyword
-            } else if (PsiModifier.PRIVATE.equals(newVisibility)) {
+            } else if (!"package-private".equals(newVisibility) && PsiModifier.PRIVATE.equals(newVisibility)) {
                 modifiers.setModifierProperty(PsiModifier.PRIVATE, true);
             }
         }
