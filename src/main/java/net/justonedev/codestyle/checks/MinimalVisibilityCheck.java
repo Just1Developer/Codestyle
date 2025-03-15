@@ -86,7 +86,7 @@ public class MinimalVisibilityCheck extends AnAction {
     /**
      * Analyzes a single PsiMethod’s references across the project to see if the method’s visibility can be lowered.
      */
-    @SuppressWarnings("ApiStatus.Experimental")
+    @SuppressWarnings("UnstableApiUsage")
     public static VisibilityInfo analyzeMethodUsage(PsiMethod method, Project project) {
         // Current visibility
         VisibilityInfo info = new VisibilityInfo(Visibility.fromMethod(method));

@@ -65,9 +65,7 @@ public class MinimalVisibilityToolWindowPanel {
                     );
 
                     // 3. Update the table model on the EDT
-                    ApplicationManager.getApplication().invokeLater(() -> {
-                        tableModel.setResults(results);
-                    });
+                    ApplicationManager.getApplication().invokeLater(() -> tableModel.setResults(results));
                 }
             });
         });
